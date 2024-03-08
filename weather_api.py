@@ -103,7 +103,7 @@ class OpenWeatherApi:
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def query_preprocessing(self, query_type, query_name, parameters):
+    def query_preprocessing(self, query_type, query_name, parameters, lang='ru', units='metric'):
         """
         Функция, определенная для возврата желаемого запроса, обновленного списком параметров.
         :param query_type: Целочисленное значение, представляющее семейство запросов, которые должны быть выполнены.
@@ -112,6 +112,8 @@ class OpenWeatherApi:
             2: УФ-индекс
         :param query_name: Имя запроса, как оно было определено в LIST_QUERY, подлежащем выполнению
         :param parameters: Список с набором параметров, которые должны быть включены в запрос
+        :param lang: Язык на котором вы хотите получать ответ
+        :param units: Еденицы измерения температуры
         :return: строка с запросом, заменяющим метку параметра значениями, включенными в список параметров
         """
         query = ""
@@ -139,6 +141,9 @@ class OpenWeatherApi:
                         cad = "{PARAM" + str(i + 1) + "}"
                         query = query + re.sub(cad, str(parameters[i]), list_qnr[j])
                         j += 1
+
+                query += f"&lang={lang}"
+                query += f"&units={units}"
                 return query
             else:
                 print("Не был введен допустимый запрос")
@@ -166,28 +171,3 @@ class OpenWeatherApi:
                 return {'error': -1}
             else:
                 return api_request.json()
-
-
-api_key = "b3b7ebe39c95c5f0a9e893f32a7d576d"
-cities_info = CitiesInformation()
-# print(cities_info)
-# список всех доступных городов
-cities_info.country_list()
-
-# информация по названию и индетификатору страны
-cities_info.select_city_information('Cheboksary', 'RU')
-cities_info.select_city_information('chebok')
-
-query_class = OpenWeatherApi(api_key)
-
-selected_city = cities_info.select_city_information('Cheboksary', 'RU')
-
-city_id = int(selected_city.iloc[0]['id']) if not selected_city.empty else None
-lon = int(selected_city.iloc[0]['coord']["lon"]) if not selected_city.empty else None
-lat = int(selected_city.iloc[0]['coord']["lat"]) if not selected_city.empty else None
-
-print(query_class.query_execution(0, 'by_city_ID', [city_id]))
-
-print(query_class.query_execution(1, 'by_city_name', ["Cheboksary", "RU"]))
-
-print(query_class.query_execution(2, 'for_one_location', [lon, lat]))
